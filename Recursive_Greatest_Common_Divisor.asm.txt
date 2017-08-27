@@ -1,0 +1,100 @@
+Comment !
+Program:   Recursive_Greatest_Common_Divisor.asm
+ Student:     Bryan Oliande
+ Date Due:        4/9/15
+ Class:       CSCI 241
+ Instructor:  Mr. Ding
+Description: Recursive GCD
+!
+
+
+
+INCLUDE Irvine32.inc
+
+;subroutine prototypes 
+CalcGcd PROTO, int1:DWORD, int2:DWORD
+ShowResult PROTO, int1:DWORD, int2:DWORD, gcd:DWORD
+
+
+.data
+array DWORD 5,20, 24,18, 11,7, 438,226, 26,13
+msgPt1 BYTE "GCD of ",0
+msgPt2 BYTE " and ",0
+msgPt3 BYTE " is ",0
+rval DWORD ?
+
+.code
+main PROC
+
+mov esi,OFFSET array
+mov ecx,5
+
+L1:
+	INVOKE CalcGcd, [esi], [esi+4]
+	mov rval,eax ;store the gcd 
+	INVOKE ShowResult, [esi], [esi+4], rval
+	add esi,8	
+	call crlf
+	loop L1
+
+call WaitMsg
+
+	exit
+main ENDP
+
+CalcGcd PROC, int1:DWORD, int2:DWORD
+;---------------------------------------------------
+; Calculate the greatest common divisor, of 
+;     two nonnegative integers in recursion.
+;	gcd(a,0)=a, gcd(a,b) = gcd(b,a mod b)
+; Receives: int1 (a), int2 (b) 
+; Returns:  EAX = Greatest common divisor
+;----------------------------------------------------
+	;base case
+	cmp int2,0	;int2 = 0?
+	jne Recursion	;no, perform division operations to make recursive call
+	mov eax,int1	;yes, return int1 in EAX
+	jmp Quit
+
+	Recursion:	;dividend: EDX:EAX Divisor:reg/mem32, Quo: EAX, Remainder: EDX
+		mov edx,0	;clearing dividend, high
+		mov eax,int1
+		div int2	;divide a by b, a mod b is in EDX
+		mov eax,int2
+		mov int1,eax	;move b to a
+		mov int2,edx	;a mod b
+		INVOKE CalcGcd, int1, int2
+
+
+	Quit:
+		ret
+CalcGcd ENDP
+
+ShowResult PROC, int1:DWORD, int2:DWORD, gcd:DWORD
+;---------------------------------------------------
+; Show calculated GCD result as 
+;      "GCD of 5 and 20 is 5"
+; Receives: int1, int2, gcd 
+;---------------------------------------------------
+       mov  edx,OFFSET msgPt1
+       call WriteString
+
+	   mov eax,int1
+	   call WriteDec
+
+	   mov  edx,OFFSET msgPt2
+       call WriteString
+
+	   mov eax,int2
+	   call WriteDec
+
+	    mov  edx,OFFSET msgPt3
+       call WriteString
+
+	   mov eax,gcd
+	   call WriteDec
+
+	ret
+ShowResult ENDP
+
+END main
